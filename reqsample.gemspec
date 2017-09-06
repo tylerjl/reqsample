@@ -5,14 +5,14 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'reqsample/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "reqsample"
-  gem.version       = Reqsample::VERSION
-  gem.summary       = %q{TODO: Summary}
-  gem.description   = %q{TODO: Description}
-  gem.license       = "MIT"
-  gem.authors       = ["Tyler Langlois"]
-  gem.email         = "tjl@byu.net"
-  gem.homepage      = "https://rubygems.org/gems/reqsample"
+  gem.name          = 'reqsample'
+  gem.version       = ReqSample::VERSION
+  gem.summary       = %(Generate high-quality sample HTTP traffic.)
+  gem.description   = %(Generate high-quality sample HTTP traffic.)
+  gem.license       = 'MIT'
+  gem.authors       = ['Tyler Langlois']
+  gem.email         = 'tjl@byu.net'
+  gem.homepage      = 'https://rubygems.org/gems/reqsample'
 
   gem.files         = `git ls-files`.split($/)
 

@@ -1,4 +1,3 @@
-module Reqsample
-  # reqsample version
-  VERSION = "0.1.0"
+module ReqSample
+  VERSION = '0.1.0'
 end
