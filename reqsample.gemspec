@@ -29,7 +29,10 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']
 
+  gem.add_development_dependency 'awesome_print'
   gem.add_development_dependency 'bundler', '~> 1.10'
+  gem.add_development_dependency 'mechanize'
+  gem.add_development_dependency 'pry'
   gem.add_development_dependency 'rake', '~> 10.0'
   gem.add_development_dependency 'rdoc', '~> 4.0'
   gem.add_development_dependency 'rspec', '~> 3.0'
