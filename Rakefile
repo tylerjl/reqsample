@@ -9,8 +9,13 @@ rescue LoadError => e
 end
 
 require 'json'
+require 'iso_country_codes'
 require 'mechanize'
+require 'open-uri'
 require 'rake'
+
+COUNTRY_CONNECTIVITY = 'https://en.wikipedia.org/wiki/List_of_countries_by_number_of_Internet_users'.freeze
+CONNECTIVITY_XPATH = '//h2[span[contains(text(), "List")]]/following-sibling::table/tr[not(descendant::th)]'.freeze
 
 require 'rubygems/tasks'
 Gem::Tasks.new
@@ -39,6 +44,35 @@ task :load_country_networks do
     end.tap do |network_hash|
       File.open('vendor/country_networks.json', 'w') do |fh|
         fh.write JSON.dump(network_hash)
+      end
+    end
+  end
+end
+
+desc 'Retrieve list of internet-connected users by Country.'
+task :load_country_connectivity do
+  Nokogiri::HTML(open(COUNTRY_CONNECTIVITY)).tap do |page|
+    page.xpath(CONNECTIVITY_XPATH).map do |row|
+      [
+        IsoCountryCodes.search_by_name(
+          case (c = row.xpath('td')[0].xpath('a').text.strip.downcase)
+          when 'vietnam' then 'viet nam'
+          when 'south korea' then 'korea (republic'
+          when 'czech republic' then 'czech'
+          when 'ivory coast' then 'côte'
+          when 'laos' then 'lao'
+          when /congo/ then 'congo'
+          when /gambia/ then 'gambia'
+          when /bahama/ then 'bahama'
+          when /são/ then 'sao'
+          else c
+          end
+        ).first.alpha2.downcase,
+        row.xpath('td')[1].text.delete(',').to_i
+      ]
+    end.to_h.tap do |statistics|
+      File.open('vendor/country_connectivity.json', 'w') do |fh|
+        fh.write JSON.dump(statistics)
       end
     end
   end

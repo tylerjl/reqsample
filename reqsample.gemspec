@@ -31,6 +31,7 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency 'awesome_print'
   gem.add_development_dependency 'bundler', '~> 1.10'
+  gem.add_development_dependency 'iso_country_codes'
   gem.add_development_dependency 'mechanize'
   gem.add_development_dependency 'pry'
   gem.add_development_dependency 'rake', '~> 10.0'
