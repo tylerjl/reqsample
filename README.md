@@ -20,6 +20,11 @@ TODO: Description
 
     $ gem install reqsample
 
+## Credits
+
+- User-Agents
+  - https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
+
 ## Copyright
 
 Copyright (c) 2017 Tyler Langlois

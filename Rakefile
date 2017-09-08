@@ -16,6 +16,7 @@ require 'rake'
 
 COUNTRY_CONNECTIVITY = 'https://en.wikipedia.org/wiki/List_of_countries_by_number_of_Internet_users'.freeze
 CONNECTIVITY_XPATH = '//h2[span[contains(text(), "List")]]/following-sibling::table/tr[not(descendant::th)]'.freeze
+USER_AGENTS = 'https://techblog.willshouse.com/2012/01/03/most-common-user-agents/'
 
 require 'rubygems/tasks'
 Gem::Tasks.new
@@ -73,6 +74,17 @@ task :load_country_connectivity do
     end.to_h.tap do |statistics|
       File.open('vendor/country_connectivity.json', 'w') do |fh|
         fh.write JSON.dump(statistics)
+      end
+    end
+  end
+end
+
+desc 'Retrieve list of common User-Agents.'
+task :load_user_agents do
+  Nokogiri::HTML(open(USER_AGENTS)).tap do |page|
+    page.at_css('.get-the-list').text.strip.split("\n").tap do |list|
+      File.open('vendor/user_agents.json', 'w') do |fh|
+        fh.write JSON.dump(list)
       end
     end
   end
