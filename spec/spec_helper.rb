@@ -1,4 +1,4 @@
 require 'rspec'
-require 'reqsample/version'
+require 'reqsample'
 
 include ReqSample
