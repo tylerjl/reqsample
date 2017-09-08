@@ -14,4 +14,8 @@ describe ReqSample::Countries do
   it 'samples countries' do
     expect(subject.sample_country).to match(/[a-z]{2}/)
   end
+
+  it 'samples time' do
+    expect(subject.sample_time).to be_a(Time)
+  end
 end

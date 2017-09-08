@@ -29,6 +29,8 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']
 
+  gem.add_dependency 'rubystats'
+
   gem.add_development_dependency 'awesome_print'
   gem.add_development_dependency 'bundler', '~> 1.10'
   gem.add_development_dependency 'guard-rspec'
