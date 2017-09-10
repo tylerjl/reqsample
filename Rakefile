@@ -31,6 +31,14 @@ RSpec::Core::RakeTask.new
 task :test    => :spec
 task :default => :spec
 
+task :pry do
+  require 'pry'
+  require 'reqsample'
+  subject = ReqSample::Countries.new
+  ARGV.clear
+  binding.pry
+end
+
 desc 'Load in country IP ranges into a unified JSON dump.'
 task :load_country_networks do
   agent = Mechanize.new
