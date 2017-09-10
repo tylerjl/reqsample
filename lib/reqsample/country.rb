@@ -2,9 +2,14 @@ require 'json'
 require 'ipaddr'
 require 'rubystats'
 
+require 'reqsample/hash'
+require 'reqsample/time'
+
 module ReqSample
   class Countries
-    attr_accessor :codes, :connectivity, :dist, :networks
+    attr_accessor :agents, :codes, :connectivity, :dist, :max_bytes, :networks
+
+    DEFAULT_MAX_BYTES = 512
 
     # These probabilities are purely random guesses
     RESPONSE_CODES = {
@@ -24,57 +29,43 @@ module ReqSample
       '504' => 3
     }.freeze
 
-    def initialize
-      vendor = File.expand_path('../../../vendor', __FILE__)
-
-      # Peak at zero (will be summed with the Time object)
-      @dist = Rubystats::NormalDistribution.new(0, 2.5)
-
-      @codes = RESPONSE_CODES.map do |code, weight|
-        [
-          code,
-          (Float weight) / RESPONSE_CODES.values.reduce(:+)
-        ]
-      end.to_h
-
-      populations = JSON.parse(
-        File.read(File.join(vendor, 'country_connectivity.json'))
-      )
-      total_population = populations.values.reduce(:+)
-      @connectivity = populations.map do |country, population|
-        [
-          country,
-          (Float population) / total_population
-        ]
-      end.to_h
-
-      @networks = JSON.parse(
-        File.read(File.join(vendor, 'country_networks.json'))
-      )
+    def vendor(file)
+      v = File.expand_path('../../../vendor', __FILE__)
+      JSON.parse(File.read(File.join(v, file)))
     end
 
-    def sample(options = {})
-      country = sample_country
+    def initialize(peak_sd = 2.5)
+      @agents = ReqSample::Hash.weighted(vendor('user_agents.json'))
+      @codes = ReqSample::Hash.weighted(RESPONSE_CODES)
+      # Peak at zero (will be summed with the Time object)
+      @dist = Rubystats::NormalDistribution.new(0, peak_sd)
+      @connectivity = ReqSample::Hash.weighted(
+        vendor('country_connectivity.json')
+      )
+      @max_bytes = DEFAULT_MAX_BYTES
+      @networks = vendor('country_networks.json')
+    end
+
+    def sample(opts = {})
+      country = connectivity.weighted_sample
       sample = {
-        :address => sample_address(country),
-        :code => sample_code,
-        :time => sample_time(options)
+        address: sample_address(country),
+        agent: agents.weighted_sample,
+        bytes: rand(max_bytes),
+        code: codes.weighted_sample,
+        time: sample_time(opts)
       }
 
-      case options[:format]
+      format opts[:format], country, sample
+    end
+
+    def format(style, country, sample)
+      case style
       when :apache
-        %Q|#{sample[:address]} - user [#{sample[:time].strftime('%d/%b/%Y:%H:%M:%S %z')}] "GET / HTTP/1.1" #{sample[:code]} 10 "http://tjll.net" "curl"|
+        %Q|#{sample[:address]} - user [#{sample[:time].strftime('%d/%b/%Y:%H:%M:%S %z')}] "GET / HTTP/1.1" #{sample[:code]} #{sample[:bytes]} "http://tjll.net" "#{sample[:agent]}"|
       else
         { country => sample }
       end
-    end
-
-    def sample_code
-      weighted_sample(codes)
-    end
-
-    def sample_country
-      weighted_sample(connectivity)
     end
 
     def sample_address(country = nil)
@@ -87,27 +78,16 @@ module ReqSample
       )
     end
 
-    def sample_time(options = {})
-      options[:peak] ||= Time.now
-      options[:truncate] ||= 12
+    def sample_time(opts = {})
+      opts[:peak] ||= Time.now
+      # Limit the normal distribution to +/- 12 hours (assume we want to stay
+      # within a 24-hour period).
+      opts[:truncate] ||= 12
 
       loop do
-        sample = options[:peak] + (dist.rng * 60 * 60)
-        break sample if time_within options[:peak], sample, options[:truncate]
+        sample = ReqSample::Time.at((opts[:peak] + (dist.rng * 60 * 60)).to_i)
+        break sample if sample.within opts[:peak], opts[:truncate]
       end
-    end
-
-    private
-
-    def time_within(center, test, limit)
-      seconds_range = limit * 60 * 60
-      (center - seconds_range) <= test && test <= (center + seconds_range)
-    end
-
-    def weighted_sample(collection)
-      collection.max_by do |_, weight|
-        rand**(1.0 / weight)
-      end.first
     end
   end
 end

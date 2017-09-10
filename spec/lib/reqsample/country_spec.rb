@@ -8,11 +8,11 @@ describe ReqSample::Countries do
   end
 
   it 'samples response codes' do
-    expect(subject.sample_code).to match(/[0-9]{3}/)
+    expect(subject.codes.weighted_sample).to match(/[0-9]{3}/)
   end
 
   it 'samples countries' do
-    expect(subject.sample_country).to match(/[a-z]{2}/)
+    expect(subject.connectivity.weighted_sample).to match(/[a-z]{2}/)
   end
 
   it 'samples time' do
