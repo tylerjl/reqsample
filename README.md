@@ -22,6 +22,10 @@ TODO: Description
 
 ## Credits
 
+- Country IP Addres Ranges
+  - http://www.nirsoft.net/countryip/
+- Country internet connectivity stats
+  - https://en.wikipedia.org/wiki/List_of_countries_by_number_of_Internet_users
 - User-Agents
   - https://techblog.willshouse.com/2012/01/03/most-common-user-agents/
 
