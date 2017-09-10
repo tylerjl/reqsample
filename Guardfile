@@ -1,4 +1,5 @@
-notification :tmux, display_message: true
+notification ENV['INSIDE_EMACS'].nil? ? :tmux : :emacs,
+             display_message: true
 
 guard :rspec, cmd: 'bundle exec rspec' do
   require 'guard/rspec/dsl'
