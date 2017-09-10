@@ -90,7 +90,12 @@ end
 desc 'Retrieve list of common User-Agents.'
 task :load_user_agents do
   Nokogiri::HTML(open(USER_AGENTS)).tap do |page|
-    page.at_css('.get-the-list').text.strip.split("\n").tap do |list|
+    page.at_css('.most-common-user-agents').xpath('tbody/tr').map do |row|
+      [
+        row.at_css('.useragent').text.strip,
+        row.at_css('.percent').text.strip.chomp('%').to_f
+      ]
+    end.to_h.tap do |list|
       File.open('vendor/user_agents.json', 'w') do |fh|
         fh.write JSON.dump(list)
       end
