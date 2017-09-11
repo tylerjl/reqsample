@@ -46,6 +46,17 @@ module ReqSample
       @networks = vendor('country_networks.json')
     end
 
+    def generate(opts = {})
+      opts[:count] ||= 1000
+      opts[:format] ||= :apache
+
+      1.upto(opts[:count]).map do |_|
+        sample_time opts
+      end.sort.map do |time|
+        sample format: opts[:format], time: time
+      end.join "\n"
+    end
+
     def sample(opts = {})
       country = connectivity.weighted_sample
       sample = {
@@ -53,7 +64,7 @@ module ReqSample
         agent: agents.weighted_sample,
         bytes: rand(max_bytes),
         code: codes.weighted_sample,
-        time: sample_time(opts)
+        time: opts[:time] || sample_time(opts)
       }
 
       format opts[:format], country, sample
