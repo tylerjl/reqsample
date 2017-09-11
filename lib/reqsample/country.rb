@@ -34,7 +34,7 @@ module ReqSample
       JSON.parse(File.read(File.join(v, file)))
     end
 
-    def initialize(peak_sd = 2.5)
+    def initialize(peak_sd = 4.0)
       @agents = ReqSample::Hash.weighted(vendor('user_agents.json'))
       @codes = ReqSample::Hash.weighted(RESPONSE_CODES)
       # Peak at zero (will be summed with the Time object)
@@ -51,28 +51,35 @@ module ReqSample
       opts[:format] ||= :apache
 
       1.upto(opts[:count]).map do |_|
-        sample_time opts
+        sample_time opts[:peak], opts[:truncate]
       end.sort.map do |time|
-        sample format: opts[:format], time: time
-      end.join "\n"
+        sample time, opts[:format]
+      end
     end
 
-    def sample(opts = {})
-      country = connectivity.weighted_sample
+    def sample(time = nil, fmt = nil)
+      # Pull a random country, but ensure it's a valid country code for the
+      # list of networks that we have available.
+      country = connectivity.weighted_sample do |ccodes|
+        ccodes.detect do |ccode|
+          networks.keys.include? ccode
+        end
+      end
+
       sample = {
         address: sample_address(country),
         agent: agents.weighted_sample,
         bytes: rand(max_bytes),
         code: codes.weighted_sample,
-        time: opts[:time] || sample_time(opts)
+        time: time || sample_time(opts)
       }
 
-      format opts[:format], country, sample
+      format fmt, country, sample
     end
 
     def format(style, country, sample)
-      case style
-      when :apache
+      case style.to_s
+      when 'apache'
         [
           "#{sample[:address]} - user",
           "[#{sample[:time].strftime('%d/%b/%Y:%H:%M:%S %z')}]",
@@ -97,15 +104,12 @@ module ReqSample
       )
     end
 
-    def sample_time(opts = {})
-      opts[:peak] ||= Time.now
-      # Limit the normal distribution to +/- 12 hours (assume we want to stay
-      # within a 24-hour period).
-      opts[:truncate] ||= 12
-
+    # Limit the normal distribution to +/- 12 hours (assume we want to stay
+    # within a 24-hour period).
+    def sample_time(peak = Time.now, truncate = 12)
       loop do
-        sample = ReqSample::Time.at((opts[:peak] + (dist.rng * 60 * 60)).to_i)
-        break sample if sample.within opts[:peak], opts[:truncate]
+        sample = ReqSample::Time.at((peak + (dist.rng * 60 * 60)).to_i)
+        break sample if sample.within peak, truncate
       end
     end
   end

@@ -7,9 +7,11 @@ module ReqSample
     end
 
     def weighted_sample
-      max_by do |_, weight|
+      result = max_by do |_, weight|
         rand**(1.0 / weight)
-      end.first
+      end
+
+      block_given? ? yield(result) : result.first
     end
   end
 end
