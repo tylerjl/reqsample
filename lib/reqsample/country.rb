@@ -38,10 +38,10 @@ module ReqSample
       @agents = ReqSample::Hash.weighted(vendor('user_agents.json'))
       @codes = ReqSample::Hash.weighted(RESPONSE_CODES)
       # Peak at zero (will be summed with the Time object)
-      @dist = Rubystats::NormalDistribution.new(0, peak_sd)
       @connectivity = ReqSample::Hash.weighted(
         vendor('country_connectivity.json')
       )
+      @dist = Rubystats::NormalDistribution.new(0, peak_sd)
       @max_bytes = DEFAULT_MAX_BYTES
       @networks = vendor('country_networks.json')
     end
@@ -62,7 +62,15 @@ module ReqSample
     def format(style, country, sample)
       case style
       when :apache
-        %Q|#{sample[:address]} - user [#{sample[:time].strftime('%d/%b/%Y:%H:%M:%S %z')}] "GET / HTTP/1.1" #{sample[:code]} #{sample[:bytes]} "http://tjll.net" "#{sample[:agent]}"|
+        [
+          "#{sample[:address]} - user",
+          "[#{sample[:time].strftime('%d/%b/%Y:%H:%M:%S %z')}]",
+          %("GET / HTTP/1.1"),
+          sample[:code],
+          sample[:bytes],
+          %("http://tjll.net"),
+          %("#{sample[:agent]}")
+        ].join ' '
       else
         { country => sample }
       end
