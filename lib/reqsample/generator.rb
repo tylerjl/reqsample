@@ -3,31 +3,16 @@ require 'ipaddr'
 require 'rubystats'
 
 require 'reqsample/hash'
+require 'reqsample/response_codes'
 require 'reqsample/time'
 
 module ReqSample
-  class Countries
+  class Generator
     attr_accessor :agents, :codes, :connectivity, :dist, :max_bytes, :networks
 
+    DEFAULT_COUNT = 1000
+    DEFAULT_FORMAT = :apache
     DEFAULT_MAX_BYTES = 512
-
-    # These probabilities are purely random guesses
-    RESPONSE_CODES = {
-      '200' => 100,
-      '204' => 1,
-      '301' => 5,
-      '302' => 10,
-      '304' => 30,
-      '400' => 3,
-      '401' => 2,
-      '403' => 6,
-      '404' => 13,
-      '429' => 3,
-      '500' => 2,
-      '502' => 7,
-      '503' => 3,
-      '504' => 3
-    }.freeze
 
     def vendor(file)
       v = File.expand_path('../../../vendor', __FILE__)
@@ -36,7 +21,7 @@ module ReqSample
 
     def initialize(peak_sd = 4.0)
       @agents = ReqSample::Hash.weighted(vendor('user_agents.json'))
-      @codes = ReqSample::Hash.weighted(RESPONSE_CODES)
+      @codes = ReqSample::Hash.weighted(ReqSample::RESPONSE_CODES)
       # Peak at zero (will be summed with the Time object)
       @connectivity = ReqSample::Hash.weighted(
         vendor('country_connectivity.json')
@@ -46,14 +31,19 @@ module ReqSample
       @networks = vendor('country_networks.json')
     end
 
-    def generate(opts = {})
-      opts[:count] ||= 1000
-      opts[:format] ||= :apache
+    def produce(opts = {})
+      opts[:count] ||= DEFAULT_COUNT
+      opts[:format] ||= DEFAULT_FORMAT
 
       1.upto(opts[:count]).map do |_|
         sample_time opts[:peak], opts[:truncate]
       end.sort.map do |time|
-        sample time, opts[:format]
+        if block_given?
+          if (delay = time - Time.now) > 0 then sleep delay end
+          yield sample time, opts[:format]
+        else
+          sample time, opts[:format]
+        end
       end
     end
 

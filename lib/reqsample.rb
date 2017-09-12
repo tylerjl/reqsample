@@ -1,2 +1,2 @@
 require 'reqsample/version'
-require 'reqsample/country'
+require 'reqsample/generator'

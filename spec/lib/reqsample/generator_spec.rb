@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ReqSample::Countries do
+describe ReqSample::Generator do
   let(:countries) { subject.new }
 
   it 'samples addresses' do
