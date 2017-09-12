@@ -7,8 +7,8 @@ require 'reqsample/version'
 Gem::Specification.new do |gem|
   gem.name          = 'reqsample'
   gem.version       = ReqSample::VERSION
-  gem.summary       = %(Generate high-quality sample HTTP traffic.)
-  gem.description   = %(Generate high-quality sample HTTP traffic.)
+  gem.summary       = %(Generate somewhat-realistic sample HTTP traffic.)
+  gem.description   = %(Generate somewhat-realistic sample HTTP traffic.)
   gem.license       = 'MIT'
   gem.authors       = ['Tyler Langlois']
   gem.email         = 'tjl@byu.net'
@@ -16,15 +16,6 @@ Gem::Specification.new do |gem|
 
   gem.files         = `git ls-files`.split($/)
 
-  `git submodule --quiet foreach --recursive pwd`.split($/).each do |submodule|
-    submodule.sub!("#{Dir.pwd}/",'')
-
-    Dir.chdir(submodule) do
-      `git ls-files`.split($/).map do |subpath|
-        gem.files << File.join(submodule,subpath)
-      end
-    end
-  end
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']

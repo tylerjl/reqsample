@@ -34,7 +34,7 @@ task :default => :spec
 task :pry do
   require 'pry'
   require 'reqsample'
-  subject = ReqSample::Countries.new
+  subject = ReqSample::Generator.new
   ARGV.clear
   binding.pry
 end

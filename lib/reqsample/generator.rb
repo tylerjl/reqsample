@@ -4,13 +4,22 @@ require 'rubystats'
 
 require 'reqsample/hash'
 require 'reqsample/response_codes'
+require 'reqsample/request_paths'
+require 'reqsample/request_verbs'
 require 'reqsample/time'
 
 module ReqSample
   class Generator
-    attr_accessor :agents, :codes, :connectivity, :dist, :max_bytes, :networks
+    attr_accessor :agents,
+                  :codes,
+                  :connectivity,
+                  :dist,
+                  :max_bytes,
+                  :networks,
+                  :verbs
 
     DEFAULT_COUNT = 1000
+    DEFAULT_DOMAIN = 'http://example.com'.freeze
     DEFAULT_FORMAT = :apache
     DEFAULT_MAX_BYTES = 512
 
@@ -29,6 +38,7 @@ module ReqSample
       @dist = Rubystats::NormalDistribution.new(0, peak_sd)
       @max_bytes = DEFAULT_MAX_BYTES
       @networks = vendor('country_networks.json')
+      @verbs = ReqSample::Hash.weighted(ReqSample::REQUEST_VERBS)
     end
 
     def produce(opts = {})
@@ -61,7 +71,10 @@ module ReqSample
         agent: agents.weighted_sample,
         bytes: rand(max_bytes),
         code: codes.weighted_sample,
-        time: time || sample_time(opts)
+        domain: DEFAULT_DOMAIN,
+        path: ReqSample::REQUEST_PATHS.sample,
+        time: time || sample_time(opts),
+        verb: verbs.weighted_sample
       }
 
       format fmt, country, sample
@@ -71,12 +84,12 @@ module ReqSample
       case style.to_s
       when 'apache'
         [
-          "#{sample[:address]} - user",
+          "#{sample[:address]} - -",
           "[#{sample[:time].strftime('%d/%b/%Y:%H:%M:%S %z')}]",
-          %("GET / HTTP/1.1"),
+          %("#{sample[:verb]} #{sample[:path]} HTTP/1.1"),
           sample[:code],
           sample[:bytes],
-          %("http://tjll.net"),
+          %("#{sample[:domain]}"),
           %("#{sample[:agent]}")
         ].join ' '
       else
