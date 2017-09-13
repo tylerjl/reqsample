@@ -8,7 +8,9 @@ require 'reqsample/request_paths'
 require 'reqsample/request_verbs'
 require 'reqsample/time'
 
+# Top-level module for ReqSample constants and classes.
 module ReqSample
+  # Main class for creating randomized data.
   class Generator
     attr_accessor :agents,
                   :codes,
@@ -23,11 +25,7 @@ module ReqSample
     DEFAULT_FORMAT = :apache
     DEFAULT_MAX_BYTES = 512
 
-    def vendor(file)
-      v = File.expand_path('../../../vendor', __FILE__)
-      JSON.parse(File.read(File.join(v, file)))
-    end
-
+    # @param peak_sd [Float] standard deviation in the normal distribution
     def initialize(peak_sd = 4.0)
       @agents = ReqSample::Hash.weighted(vendor('user_agents.json'))
       @codes = ReqSample::Hash.weighted(ReqSample::RESPONSE_CODES)
@@ -41,9 +39,17 @@ module ReqSample
       @verbs = ReqSample::Hash.weighted(ReqSample::REQUEST_VERBS)
     end
 
+    # @option opts [Integer] :count how many logs to generate
+    # @option opts [String] :format form to return logs, :apache or :hash
+    # @option opts [Time] :peak normal distribution peak for log timestamps
+    # @option opts [Integer] :truncate hard limit to keep log range within
+    #
+    # @return [Array<String, Hash>] the collection of generated log events
     def produce(opts = {})
       opts[:count] ||= DEFAULT_COUNT
       opts[:format] ||= DEFAULT_FORMAT
+      opts[:peak] ||= Time.now - (12 * 60 * 60)
+      opts[:truncate] ||= 12
 
       1.upto(opts[:count]).map do |_|
         sample_time opts[:peak], opts[:truncate]
@@ -109,11 +115,18 @@ module ReqSample
 
     # Limit the normal distribution to +/- 12 hours (assume we want to stay
     # within a 24-hour period).
-    def sample_time(peak = Time.now, truncate = 12)
+    def sample_time(peak, truncate)
       loop do
         sample = ReqSample::Time.at((peak + (dist.rng * 60 * 60)).to_i)
         break sample if sample.within peak, truncate
       end
     end
+  end
+
+  private
+
+  def vendor(file)
+    v = File.expand_path('../../../vendor', __FILE__)
+    JSON.parse(File.read(File.join(v, file)))
   end
 end
