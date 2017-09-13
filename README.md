@@ -3,6 +3,8 @@
 * [Homepage](https://rubygems.org/gems/reqsample)
 * [Documentation](http://rubydoc.info/gems/reqsample/frames)
 
+![Example Screenshot](./screenshot.png)
+
 ## Description
 
 `reqsample` is a utility to generate somewhat-realistic public HTTP traffic. If you've ever needed a large corpus of Apache or nginx logs to test geoip processing, a Logstash pipeline, or as the source for a demo; this utility is for you.
