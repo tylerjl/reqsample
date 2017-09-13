@@ -25,6 +25,11 @@ module ReqSample
     DEFAULT_FORMAT = :apache
     DEFAULT_MAX_BYTES = 512
 
+    def vendor(file)
+      v = File.expand_path('../../../vendor', __FILE__)
+      JSON.parse(File.read(File.join(v, file)))
+    end
+
     # @param peak_sd [Float] standard deviation in the normal distribution
     def initialize(peak_sd = 4.0)
       @agents = ReqSample::Hash.weighted(vendor('user_agents.json'))
@@ -121,12 +126,5 @@ module ReqSample
         break sample if sample.within peak, truncate
       end
     end
-  end
-
-  private
-
-  def vendor(file)
-    v = File.expand_path('../../../vendor', __FILE__)
-    JSON.parse(File.read(File.join(v, file)))
   end
 end
