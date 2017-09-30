@@ -16,6 +16,6 @@ describe ReqSample::Generator do
   end
 
   it 'samples time' do
-    expect(subject.sample_time).to be_a(Time)
+    expect(subject.sample_time(Time.now, 12)).to be_a(Time)
   end
 end
